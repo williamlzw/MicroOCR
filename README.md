@@ -1,5 +1,5 @@
 ## MicroOCR
-a micro OCR network with 0.07mb params.
+a micro OCR network.
 
 The project has 5000 training task training sets and 500 test sets. 
 
