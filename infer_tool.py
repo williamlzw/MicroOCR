@@ -23,7 +23,7 @@ class RecInfer:
         self.transforms = transforms.ToTensor()
 
     def predict(self, img: np.ndarray) -> List[Tuple[str, np.ndarray]]:
-        img = resize_with_specific_height(30, img)
+        img = resize_with_specific_height(32, img)
         tensor = self.transforms(img)
         tensor = tensor.unsqueeze(dim=0)
         tensor = tensor.to(self.device)

@@ -43,7 +43,7 @@ class RecCollateFn:
     将图片缩放到固定高度,宽度取当前批次最长的RecCollateFn
     """
 
-    def __init__(self, input_h=30):
+    def __init__(self, input_h=32):
         self.input_h = input_h
         self.transforms = transforms.ToTensor()
 

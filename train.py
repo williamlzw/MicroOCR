@@ -223,11 +223,11 @@ def main():
         '--train_list', default='E:/precode/train1.txt', help='path to dataset dir')
     parser.add_argument(
         '--test_list', default='E:/precode/test1.txt', help='path to dataset dir')
-    parser.add_argument('--model_path', default='save_model/micro_epoch95_word_acc0.990000_char_acc0.997000.pth',
+    parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=64, help='nh', type=int)
+    parser.add_argument('--nh', default=16, help='nh', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
     parser.add_argument('--batch_size', default=16, type=int,
@@ -240,7 +240,7 @@ def main():
                         help='display interval', type=int)
     parser.add_argument('--val_interval', default=600,
                         help='val interval', type=int)
-    parser.add_argument('--save_epoch', default=5,
+    parser.add_argument('--save_epoch', default=1,
                         help='save epoch', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)

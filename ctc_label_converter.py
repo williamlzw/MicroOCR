@@ -34,7 +34,7 @@ class CTCLabelConverter(object):
                 result = []
                 conf = []
                 for i, index in enumerate(word):
-                    if word[i] != 0:
+                    if word[i] != 0 and (not (i > 0 and word[i - 1] == word[i])):
                         result.append(self.character[int(index)])
                         conf.append(prob[i])
                 result_list.append((''.join(result), conf))
