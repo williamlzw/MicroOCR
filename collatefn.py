@@ -43,22 +43,20 @@ class RecCollateFn:
     将图片缩放到固定高度,宽度取当前批次最长的RecCollateFn
     """
 
-    def __init__(self, input_h=32):
+    def __init__(self, input_h: int=32):
         self.input_h = input_h
         self.transforms = transforms.ToTensor()
 
     def __call__(self,
                  batch: List[Dict[str, np.ndarray]]) \
             -> Dict[str, List[np.ndarray]]:
-        # print(batch)
         resize_images: List[Tensor] = []
         # 统一缩放到指定高度
         all_same_height_images = [
             resize_with_specific_height(
                 self.input_h, batch_index['image']) for batch_index in batch]
         # 取出最大宽度
-        max_img_w = max({batch_index['image'].shape[1]
-                         for batch_index in batch})
+        max_img_w = max({m_img.shape[1] for m_img in all_same_height_images})
         # 确保最大宽度是8的倍数
         max_img_w = int(np.ceil(max_img_w / 8) * 8)
         labels = []
@@ -68,5 +66,5 @@ class RecCollateFn:
                 all_same_height_images[i], max_img_w)
             img = self.transforms(img)
             resize_images.append(img)
-        ret_images = torch.cat([t.unsqueeze(0) for t in resize_images], 0)
+        ret_images = torch.stack(resize_images)
         return {'image': ret_images, 'label': labels}

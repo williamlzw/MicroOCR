@@ -28,7 +28,6 @@ class RecInfer:
         tensor = tensor.unsqueeze(dim=0)
         tensor = tensor.to(self.device)
         out: Tensor = self.model(tensor)
-
         txt = self.converter.decode(out.softmax(
             dim=2).detach().cpu().numpy(), False)
         return txt

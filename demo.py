@@ -8,9 +8,11 @@ from infer_tool import RecInfer
 
 def demo():
     parser = argparse.ArgumentParser(description='rec net')
-    parser.add_argument('--model_path', default='save_model/micro_epoch35_word_acc1.000000_char_acc1.000000.pth',
-                        help='model path') 
-    parser.add_argument('--nh', default=16, type=int, help='nh')
+    parser.add_argument('--model_path',
+                        default='save_model/micro_nh8_depth2_epoch362_word_acc1.000000_char_acc1.000000.pth',
+                        help='model path')
+    parser.add_argument('--nh', default=8, type=int, help='nh')
+    parser.add_argument('--depth', default=2, type=int, help='nh')
     cfg = parser.parse_args()
     infer = RecInfer(cfg)
     img = cv2.imread('00000.jpg')

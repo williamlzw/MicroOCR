@@ -54,11 +54,12 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
                     running_word_corrects / running_all,
                     running_char_corrects / running_all_char_correct,
                     time.time()-since))
-
     for s in show_strs[:show_str_size]:
         print(s)
     model.train()
-    return running_word_corrects / running_all, running_char_corrects / running_all_char_correct,
+    val_word_accu = running_word_corrects / running_all if running_all != 0 else 0.
+    val_char_accu = running_char_corrects / running_all_char_correct if running_all_char_correct != 0 else 0.
+    return val_word_accu, val_char_accu
 
 
 def train_model(cfg):
@@ -134,7 +135,7 @@ def train_model(cfg):
 
 
 def build_rec_model(cfg, nclass):
-    model = MicroNet(nh=cfg.nh, nclass=nclass)
+    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass)
     return model
 
 
@@ -227,20 +228,21 @@ def main():
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=16, help='nh', type=int)
+    parser.add_argument('--nh', default=128, help='nh', type=int)
+    parser.add_argument('--depth', default=2, help='depth', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
-    parser.add_argument('--batch_size', default=16, type=int,
+    parser.add_argument('--batch_size', default=64, type=int,
                         help='mini-batch size (default: 16)')
     parser.add_argument('--workers', default=0,
                         help='number of data loading workers (default: 0)', type=int)
-    parser.add_argument('--epochs', default=100,
+    parser.add_argument('--epochs', default=300,
                         help='number of total epochs', type=int)
     parser.add_argument('--display_interval', default=200,
                         help='display interval', type=int)
     parser.add_argument('--val_interval', default=600,
                         help='val interval', type=int)
-    parser.add_argument('--save_epoch', default=1,
+    parser.add_argument('--save_epoch', default=2,
                         help='save epoch', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)

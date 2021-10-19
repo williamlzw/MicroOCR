@@ -57,11 +57,11 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 120)
-    model = MicroNet(128, depth=2, nclass=60, img_height=32)
+    model = MicroNet(256, depth=1, nclass=63, img_height=32)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
     #print(out.shape, (t1-t0)*1000)
-    #torch.save(model, 'test.pth')
+    torch.save(model, 'test.pth')
     from torchsummary import summary
     summary(model, (3, 32, 128), device='cpu')
