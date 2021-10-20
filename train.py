@@ -177,7 +177,7 @@ def build_rec_dataloader(data_dir, label_file_list, batchsize,
     return loader
 
 
-def build_scheduler(optimizer, step_size=60, gamma=0.5):
+def build_scheduler(optimizer, step_size=1000, gamma=0.8):
     scheduler = optim.lr_scheduler.StepLR(
         optimizer, step_size=step_size, gamma=gamma)
     return scheduler
@@ -224,11 +224,11 @@ def main():
         '--train_list', default='E:/precode/train1.txt', help='path to dataset dir')
     parser.add_argument(
         '--test_list', default='E:/precode/test1.txt', help='path to dataset dir')
-    parser.add_argument('--model_path', default='',
+    parser.add_argument('--model_path', default='save_model/micro_epoch2980_word_acc0.996000_char_acc0.999000.pth',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=128, help='nh', type=int)
+    parser.add_argument('--nh', default=2, help='nh', type=int)
     parser.add_argument('--depth', default=2, help='depth', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
@@ -236,13 +236,13 @@ def main():
                         help='mini-batch size (default: 16)')
     parser.add_argument('--workers', default=0,
                         help='number of data loading workers (default: 0)', type=int)
-    parser.add_argument('--epochs', default=300,
+    parser.add_argument('--epochs', default=3000,
                         help='number of total epochs', type=int)
     parser.add_argument('--display_interval', default=200,
                         help='display interval', type=int)
-    parser.add_argument('--val_interval', default=600,
+    parser.add_argument('--val_interval', default=1000,
                         help='val interval', type=int)
-    parser.add_argument('--save_epoch', default=2,
+    parser.add_argument('--save_epoch', default=1,
                         help='save epoch', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)

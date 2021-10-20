@@ -4,10 +4,15 @@ from torch.nn.functional import adaptive_max_pool1d
 
 
 class ConvBNACT(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1):
+    def __init__(self, in_channels, out_channels, kernel_size,
+                 stride=1, padding=0, groups=1):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                              stride=stride, padding=padding, groups=groups,
+        self.conv = nn.Conv2d(in_channels=in_channels,
+                              out_channels=out_channels,
+                              kernel_size=kernel_size,
+                              stride=stride,
+                              padding=padding,
+                              groups=groups,
                               bias=True)
         self.bn = nn.BatchNorm2d(out_channels)
         self.act = nn.GELU()
@@ -57,11 +62,11 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 120)
-    model = MicroNet(256, depth=1, nclass=63, img_height=32)
+    model = MicroNet(2, depth=2, nclass=62, img_height=32)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
     #print(out.shape, (t1-t0)*1000)
-    torch.save(model, 'test.pth')
+    #torch.save(model, 'test.pth')
     from torchsummary import summary
-    summary(model, (3, 32, 128), device='cpu')
+    summary(model, (3, 32, 120), device='cpu')
