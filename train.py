@@ -46,7 +46,7 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
             if batch_idx == 0:
                 since = time.time()
             elif batch_idx == len(data_loader)-1:
-                print('Eval:[{:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word_Acc:{:.4f} Char_Acc:{:.4f} Cost time:{:5.0f}s'.format(
+                print('Eval:[{:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s'.format(
                     running_all,
                     len(data_loader.dataset),
                     100. * batch_idx / (len(data_loader)-1),
@@ -57,8 +57,10 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
     for s in show_strs[:show_str_size]:
         print(s)
     model.train()
-    val_word_accu = running_word_corrects / running_all if running_all != 0 else 0.
-    val_char_accu = running_char_corrects / running_all_char_correct if running_all_char_correct != 0 else 0.
+    val_word_accu = running_word_corrects / \
+        running_all if running_all != 0 else 0.
+    val_char_accu = running_char_corrects / \
+        running_all_char_correct if running_all_char_correct != 0 else 0.
     return val_word_accu, val_char_accu
 
 
@@ -108,7 +110,7 @@ def train_model(cfg):
             if batch_idx == 0:
                 since = time.time()
             elif batch_idx % cfg.display_interval == 0 or (batch_idx == len(train_loader)-1):
-                print('Train:[epoch {}/{} {:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word_Acc:{:.4f} Char_Acc:{:.4f} Cost time:{:5.0f}s Estimated time:{:5.0f}s'.format(
+                print('Train:[epoch {}/{} {:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s Estimated time:{:5.0f}s'.format(
                     epoch+1,
                     cfg.epochs,
                     running_all,
@@ -126,16 +128,16 @@ def train_model(cfg):
                     best_word_accu = val_word_accu
                     save_rec_model(cfg.model_type, model, 'best',
                                    best_word_accu, val_char_accu)
-        if epoch % cfg.save_epoch == 0:
+        if (epoch+1) % cfg.save_epoch == 0:
             val_word_accu, val_char_accu = test_model(
                 model, device, test_loader, converter, metric, loss_func, cfg.show_str_size)
-            save_rec_model(cfg.model_type, model, epoch,
+            save_rec_model(cfg.model_type, model, epoch+1,
                            val_word_accu, val_char_accu)
         scheduler.step()
 
 
 def build_rec_model(cfg, nclass):
-    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass)
+    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass, use_lstm=cfg.use_lstm)
     return model
 
 
@@ -215,34 +217,35 @@ def load_rec_model(model_path, model):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='rec net')
+    parser = argparse.ArgumentParser(description='MicroOCR')
     parser.add_argument('--train_root', default='E:/precode/',
-                        help='path to dataset dir')
+                        help='path to train dataset dir')
     parser.add_argument('--test_root', default='E:/precode/',
-                        help='path to dataset dir')
+                        help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='E:/precode/train1.txt', help='path to dataset dir')
+        '--train_list', default='E:/precode/train1.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='E:/precode/test1.txt', help='path to dataset dir')
-    parser.add_argument('--model_path', default='save_model/micro_epoch2980_word_acc0.996000_char_acc0.999000.pth',
+        '--test_list', default='E:/precode/test1.txt', help='path to test dataset label file')
+    parser.add_argument('--model_path', default='save_model/micro_epoch260_word_acc0.038000_char_acc0.320500.pth',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=2, help='nh', type=int)
+    parser.add_argument('--nh', default=4, help='nh', type=int)
     parser.add_argument('--depth', default=2, help='depth', type=int)
+    parser.add_argument('--use_lstm', default=True, help='use lstm', type=bool)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
-    parser.add_argument('--batch_size', default=64, type=int,
-                        help='mini-batch size (default: 16)')
+    parser.add_argument('--batch_size', default=8, type=int,
+                        help='batch size')
     parser.add_argument('--workers', default=0,
-                        help='number of data loading workers (default: 0)', type=int)
-    parser.add_argument('--epochs', default=3000,
+                        help='number of data loading workers', type=int)
+    parser.add_argument('--epochs', default=300,
                         help='number of total epochs', type=int)
     parser.add_argument('--display_interval', default=200,
                         help='display interval', type=int)
     parser.add_argument('--val_interval', default=1000,
                         help='val interval', type=int)
-    parser.add_argument('--save_epoch', default=1,
+    parser.add_argument('--save_epoch', default=10,
                         help='save epoch', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)

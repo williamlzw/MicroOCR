@@ -37,15 +37,23 @@ class MicroBlock(nn.Module):
 
 
 class MicroNet(nn.Module):
-    def __init__(self, nh=64, depth=2, nclass=60, img_height=32):
+    def __init__(self, nh=64, depth=2, nclass=60, img_height=32, use_lstm=True):
         super().__init__()
         self.conv = ConvBNACT(3, nh, 4, 4)
         self.blocks = nn.ModuleList()
+        self.use_lstm = use_lstm
+
         for i in range(depth):
             self.blocks.append(MicroBlock(nh, 3))
+
         self.flatten = nn.Flatten(start_dim=1, end_dim=2)
         linear_in = nh * int((img_height-(4-1)-1)/4 + 1)
-        self.fc = nn.Linear(linear_in, nclass)
+
+        if use_lstm:
+            self.lstm = nn.LSTM(linear_in, 32, bidirectional=True)
+            self.fc = nn.Linear(64, nclass)
+        else:
+            self.fc = nn.Linear(linear_in, nclass)
 
     def forward(self, x):
         x_shape = x.size()
@@ -55,6 +63,8 @@ class MicroNet(nn.Module):
         x = self.flatten(x)
         x = adaptive_max_pool1d(x, int(x_shape[3]/4))
         x = x.permute(0, 2, 1)
+        if self.use_lstm:
+            x = self.lstm(x)[0]
         x = self.fc(x)
         return x
 
@@ -62,11 +72,13 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 120)
-    model = MicroNet(2, depth=2, nclass=62, img_height=32)
+    model = MicroNet(8, depth=2, nclass=62, img_height=32, use_lstm=True)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
-    #print(out.shape, (t1-t0)*1000)
-    #torch.save(model, 'test.pth')
-    from torchsummary import summary
-    summary(model, (3, 32, 120), device='cpu')
+    print(out.shape, (t1-t0)*1000)
+    torch.save(model, 'test.pth')
+    from torchsummaryX import summary
+    summary(model, x)
+
+
