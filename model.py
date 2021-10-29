@@ -47,10 +47,11 @@ class MicroNet(nn.Module):
             self.blocks.append(MicroBlock(nh, 3))
 
         self.flatten = nn.Flatten(start_dim=1, end_dim=2)
+        self.dropout = nn.Dropout(0.1)
         linear_in = nh * int((img_height-(4-1)-1)/4 + 1)
 
         if use_lstm:
-            self.lstm = nn.LSTM(linear_in, 32, bidirectional=True)
+            self.lstm = nn.GRU(linear_in, 64)
             self.fc = nn.Linear(64, nclass)
         else:
             self.fc = nn.Linear(linear_in, nclass)
@@ -63,6 +64,7 @@ class MicroNet(nn.Module):
         x = self.flatten(x)
         x = adaptive_max_pool1d(x, int(x_shape[3]/4))
         x = x.permute(0, 2, 1)
+        x = self.dropout(x)
         if self.use_lstm:
             x = self.lstm(x)[0]
         x = self.fc(x)
@@ -71,14 +73,14 @@ class MicroNet(nn.Module):
 
 if __name__ == '__main__':
     import time
-    x = torch.randn(1, 3, 32, 120)
-    model = MicroNet(8, depth=2, nclass=62, img_height=32, use_lstm=True)
+    x = torch.randn(1, 3, 32, 256)
+    model = MicroNet(256, depth=2, nclass=62, img_height=32, use_lstm=True)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
     print(out.shape, (t1-t0)*1000)
     torch.save(model, 'test.pth')
-    from torchsummaryX import summary
-    summary(model, x)
+    #from torchsummaryX import summary
+    #summary(model, x)
 
 

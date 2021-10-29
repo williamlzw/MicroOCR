@@ -6,8 +6,8 @@ import cv2
 from infer_tool import RecInfer
 
 
-def demo():
-    parser = argparse.ArgumentParser(description='rec net')
+def main():
+    parser = argparse.ArgumentParser(description='MicroOCR')
     parser.add_argument('--model_path',
                         default='save_model/micro_nh8_depth2_epoch362_word_acc1.000000_char_acc1.000000.pth',
                         help='model path')
@@ -24,4 +24,4 @@ def demo():
 
 
 if __name__ == "__main__":
-    demo()
+    main()

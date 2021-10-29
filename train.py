@@ -223,14 +223,14 @@ def main():
     parser.add_argument('--test_root', default='E:/precode/',
                         help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='E:/precode/train1.txt', help='path to train dataset label file')
+        '--train_list', default='E:/precode/train.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='E:/precode/test1.txt', help='path to test dataset label file')
-    parser.add_argument('--model_path', default='save_model/micro_epoch260_word_acc0.038000_char_acc0.320500.pth',
+        '--test_list', default='E:/precode/test.txt', help='path to test dataset label file')
+    parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=4, help='nh', type=int)
+    parser.add_argument('--nh', default=256, help='nh', type=int)
     parser.add_argument('--depth', default=2, help='depth', type=int)
     parser.add_argument('--use_lstm', default=True, help='use lstm', type=bool)
     parser.add_argument('--lr', default=0.0001,

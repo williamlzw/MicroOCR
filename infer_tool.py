@@ -5,11 +5,10 @@ import torch
 from torch import Tensor
 from torchvision import transforms
 
-from train import build_rec_model
+from train import build_rec_model, load_rec_model
 from keys import character
 from ctc_label_converter import CTCLabelConverter
 from collatefn import resize_with_specific_height
-from train import load_rec_model
 
 
 class RecInfer:
