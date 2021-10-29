@@ -39,6 +39,7 @@ class MicroBlock(nn.Module):
 class MicroNet(nn.Module):
     def __init__(self, nh=64, depth=2, nclass=60, img_height=32, use_lstm=True):
         super().__init__()
+        assert(nh >= 2)
         self.conv = ConvBNACT(3, nh, 4, 4)
         self.blocks = nn.ModuleList()
         self.use_lstm = use_lstm
@@ -51,8 +52,9 @@ class MicroNet(nn.Module):
         linear_in = nh * int((img_height-(4-1)-1)/4 + 1)
 
         if use_lstm:
-            self.lstm = nn.GRU(linear_in, 64)
-            self.fc = nn.Linear(64, nclass)
+            hidden = 64 if nh < 256 else nh//4
+            self.lstm = nn.GRU(linear_in, hidden)
+            self.fc = nn.Linear(hidden, nclass)
         else:
             self.fc = nn.Linear(linear_in, nclass)
 
@@ -74,7 +76,7 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 256)
-    model = MicroNet(256, depth=2, nclass=62, img_height=32, use_lstm=True)
+    model = MicroNet(8, depth=2, nclass=62, img_height=32, use_lstm=True)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
@@ -82,5 +84,3 @@ if __name__ == '__main__':
     torch.save(model, 'test.pth')
     #from torchsummaryX import summary
     #summary(model, x)
-
-
