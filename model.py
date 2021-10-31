@@ -1,6 +1,7 @@
+import math
 import torch
 import torch.nn as nn
-from torch.nn.functional import adaptive_max_pool1d
+from torch.nn.functional import adaptive_avg_pool1d
 
 
 class ConvBNACT(nn.Module):
@@ -15,12 +16,12 @@ class ConvBNACT(nn.Module):
                               groups=groups,
                               bias=True)
         self.bn = nn.BatchNorm2d(out_channels)
-        self.act = nn.GELU()
+        self.act = nn.GELU() 
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
-        x = self.act(x)
+        x = self.act(x)  
         return x
 
 
@@ -64,7 +65,7 @@ class MicroNet(nn.Module):
         for block in self.blocks:
             x = block(x)
         x = self.flatten(x)
-        x = adaptive_max_pool1d(x, int(x_shape[3]/4))
+        x = adaptive_avg_pool1d(x, int(x_shape[3]/4))
         x = x.permute(0, 2, 1)
         x = self.dropout(x)
         if self.use_lstm:
@@ -76,11 +77,11 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 256)
-    model = MicroNet(8, depth=2, nclass=62, img_height=32, use_lstm=True)
+    model = MicroNet(64, depth=2, nclass=62, img_height=32, use_lstm=True)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
     print(out.shape, (t1-t0)*1000)
     torch.save(model, 'test.pth')
-    #from torchsummaryX import summary
-    #summary(model, x)
+    # from torchsummaryX import summary
+    # summary(model, x)
