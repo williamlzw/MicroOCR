@@ -7,12 +7,12 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from model import MicroNet
-from metric import RecMetric
-from loss import CTCLoss
+from metric import RecMetric2
+from loss import SARLoss
 from dataset import RecTextLineDataset
 from collatefn import RecCollateFn
-from label_converter import CTCLabelConverter
-from keys import character
+from label_converter import AttentionLabelConverter
+from keys import character2
 
 
 def test_model(model, device, data_loader, converter, metric, loss_func, show_str_size):
@@ -67,10 +67,10 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
 def train_model(cfg):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_loader = build_rec_dataloader(
-        cfg.train_root, cfg.train_list, cfg.batch_size, cfg.workers, character, is_train=True)
+        cfg.train_root, cfg.train_list, cfg.batch_size, cfg.workers, character2, is_train=True)
     test_loader = build_rec_dataloader(
-        cfg.test_root, cfg.test_list, cfg.batch_size, cfg.workers, character, is_train=False)
-    converter = CTCLabelConverter(character)
+        cfg.test_root, cfg.test_list, cfg.batch_size, cfg.workers, character2, is_train=False)
+    converter = AttentionLabelConverter(character2)
     loss_func = build_rec_loss().to(device)
     metric = build_rec_metric(converter)
     model = build_rec_model(cfg, converter.num_of_classes).to(device)
@@ -141,12 +141,12 @@ def build_rec_model(cfg, nclass):
     return model
 
 
-def build_rec_metric(converter: CTCLabelConverter):
+def build_rec_metric(converter: AttentionLabelConverter):
     return RecMetric(converter)
 
 
-def build_rec_loss(blank_idx=0, reduction='sum'):
-    return CTCLoss(blank_idx, reduction)
+def build_rec_loss(reduction='sum'):
+    return SARLoss(reduction=reduction)
 
 
 def build_optimizer(model, lr=0.0001):

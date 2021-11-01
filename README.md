@@ -44,7 +44,7 @@ Nh    | Depth | Nclass  | Use lstm|    Params size  |Model size(KB)| Total train
 MicroOCR
 ├── README.md                                   # Descriptions about MicroNet
 ├── collatefn.py                                # collatefn
-├── ctc_label_converter.py                      # label converter
+├── label_converter.py                          # label converter
 ├── dataset.py                                  # Data preprocessing for training and evaluation
 ├── demo.py                                     # demo
 ├── gen_image.py                                # generate image for train and eval

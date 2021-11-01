@@ -54,7 +54,7 @@ class MicroNet(nn.Module):
 
         if use_lstm:
             hidden = 64 if nh < 256 else nh//4
-            self.lstm = nn.GRU(linear_in, hidden)
+            self.lstm = nn.GRU(linear_in, hidden, batch_first=True)
             self.fc = nn.Linear(hidden, nclass)
         else:
             self.fc = nn.Linear(linear_in, nclass)
@@ -77,7 +77,7 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 256)
-    model = MicroNet(64, depth=2, nclass=62, img_height=32, use_lstm=True)
+    model = MicroNet(16, depth=2, nclass=62, img_height=32, use_lstm=True)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
