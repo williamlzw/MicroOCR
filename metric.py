@@ -2,7 +2,7 @@ from typing import Dict
 
 from torch import Tensor
 
-from label_converter import CTCLabelConverter, AttentionLabelConverter
+from label_converter import CTCLabelConverter
 
 
 class RecMetric(object):
@@ -24,35 +24,6 @@ class RecMetric(object):
         for (raw, raw_conf), (pred, pred_conf), target in zip(
                 raws_str, preds_str, labels):
             show_str.append(f'{raw} -> {pred} -> {target}')
-            if pred == target:
-                word_correct += 1
-            for idxa, idxb in zip(pred, target):
-                if idxa == idxb:
-                    char_correct += 1
-        return dict(word_correct=word_correct,
-                    char_correct=char_correct,
-                    show_str=show_str)
-
-
-class RecMetric2(object):
-    def __init__(self, converter: AttentionLabelConverter):
-        """
-        文本识别相关指标计算类
-        :param converter: 用于label转换的转换器
-        """
-        self.converter = converter
-
-    def __call__(self,
-                 predictions: Tensor,
-                 labels: Tensor) -> Dict[str, Tensor]:
-        word_correct, char_correct = 0, 0
-        predictions = predictions.softmax(dim=2)
-        indexes, scores = self.converter.decode(predictions)
-        preds_str = self.converter.idx2str(indexes)
-        show_str = []
-        for (pred, pred_conf), target in zip(
-                preds_str, labels):
-            show_str.append(f'{pred} -> {target}')
             if pred == target:
                 word_correct += 1
             for idxa, idxb in zip(pred, target):
