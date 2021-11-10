@@ -7,7 +7,7 @@ from torchvision import transforms
 
 from train import build_rec_model, load_rec_model
 from keys import character
-from ctc_label_converter import CTCLabelConverter
+from label_converter import CTCLabelConverter
 from collatefn import resize_with_specific_height
 
 

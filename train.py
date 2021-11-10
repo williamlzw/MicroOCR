@@ -11,7 +11,7 @@ from metric import RecMetric
 from loss import CTCLoss
 from dataset import RecTextLineDataset
 from collatefn import RecCollateFn
-from ctc_label_converter import CTCLabelConverter
+from label_converter import CTCLabelConverter
 from keys import character
 
 
@@ -137,7 +137,7 @@ def train_model(cfg):
 
 
 def build_rec_model(cfg, nclass):
-    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass, use_lstm=cfg.use_lstm)
+    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass)
     return model
 
 
@@ -218,21 +218,20 @@ def load_rec_model(model_path, model):
 
 def main():
     parser = argparse.ArgumentParser(description='MicroOCR')
-    parser.add_argument('--train_root', default='E:/precode/',
+    parser.add_argument('--train_root', default='F:/precode/',
                         help='path to train dataset dir')
-    parser.add_argument('--test_root', default='E:/precode/',
+    parser.add_argument('--test_root', default='F:/precode/',
                         help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='E:/precode/train.txt', help='path to train dataset label file')
+        '--train_list', default='F:/precode/train1.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='E:/precode/test.txt', help='path to test dataset label file')
+        '--test_list', default='F:/precode/test1.txt', help='path to test dataset label file')
     parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
     parser.add_argument('--nh', default=256, help='nh', type=int)
-    parser.add_argument('--depth', default=2, help='depth', type=int)
-    parser.add_argument('--use_lstm', default=True, help='use lstm', type=bool)
+    parser.add_argument('--depth', default=8, help='depth', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
     parser.add_argument('--batch_size', default=8, type=int,
@@ -245,7 +244,7 @@ def main():
                         help='display interval', type=int)
     parser.add_argument('--val_interval', default=1000,
                         help='val interval', type=int)
-    parser.add_argument('--save_epoch', default=10,
+    parser.add_argument('--save_epoch', default=1,
                         help='save epoch', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)

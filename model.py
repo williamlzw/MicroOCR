@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 from torch.nn.functional import adaptive_avg_pool1d
@@ -14,14 +13,14 @@ class ConvBNACT(nn.Module):
                               stride=stride,
                               padding=padding,
                               groups=groups,
-                              bias=True)
+                              bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
-        self.act = nn.GELU() 
+        self.act = nn.GELU()
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
-        x = self.act(x)  
+        x = self.act(x)
         return x
 
 
@@ -38,26 +37,17 @@ class MicroBlock(nn.Module):
 
 
 class MicroNet(nn.Module):
-    def __init__(self, nh=64, depth=2, nclass=60, img_height=32, use_lstm=True):
+    def __init__(self, nh=64, depth=2, nclass=60, img_height=32):
         super().__init__()
         assert(nh >= 2)
         self.conv = ConvBNACT(3, nh, 4, 4)
         self.blocks = nn.ModuleList()
-        self.use_lstm = use_lstm
-
         for i in range(depth):
             self.blocks.append(MicroBlock(nh, 3))
-
         self.flatten = nn.Flatten(start_dim=1, end_dim=2)
         self.dropout = nn.Dropout(0.1)
         linear_in = nh * int((img_height-(4-1)-1)/4 + 1)
-
-        if use_lstm:
-            hidden = 64 if nh < 256 else nh//4
-            self.lstm = nn.GRU(linear_in, hidden)
-            self.fc = nn.Linear(hidden, nclass)
-        else:
-            self.fc = nn.Linear(linear_in, nclass)
+        self.fc = nn.Linear(linear_in, nclass)
 
     def forward(self, x):
         x_shape = x.size()
@@ -68,20 +58,18 @@ class MicroNet(nn.Module):
         x = adaptive_avg_pool1d(x, int(x_shape[3]/4))
         x = x.permute(0, 2, 1)
         x = self.dropout(x)
-        if self.use_lstm:
-            x = self.lstm(x)[0]
         x = self.fc(x)
         return x
 
 
 if __name__ == '__main__':
     import time
-    x = torch.randn(1, 3, 32, 256)
-    model = MicroNet(64, depth=2, nclass=62, img_height=32, use_lstm=True)
+    x = torch.randn(1, 3, 32, 128)
+    model = MicroNet(256, depth=16, nclass=62, img_height=32)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
     print(out.shape, (t1-t0)*1000)
-    torch.save(model, 'test.pth')
-    # from torchsummaryX import summary
-    # summary(model, x)
+    #torch.save(model, 'test.pth')
+    from torchsummaryX import summary
+    summary(model, x)

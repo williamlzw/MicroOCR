@@ -2,7 +2,7 @@ from typing import Dict
 
 from torch import Tensor
 
-from ctc_label_converter import CTCLabelConverter
+from label_converter import CTCLabelConverter
 
 
 class RecMetric(object):
