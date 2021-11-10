@@ -13,7 +13,6 @@ def main():
                         help='model path')
     parser.add_argument('--nh', default=16, type=int, help='nh')
     parser.add_argument('--depth', default=2, type=int, help='depth')
-    parser.add_argument('--use_lstm', default=False, help='use lstm', type=bool)
     cfg = parser.parse_args()
     infer = RecInfer(cfg)
     img = cv2.imread('00000.jpg')

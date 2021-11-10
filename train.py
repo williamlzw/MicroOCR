@@ -137,7 +137,7 @@ def train_model(cfg):
 
 
 def build_rec_model(cfg, nclass):
-    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass, use_lstm=cfg.use_lstm)
+    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass)
     return model
 
 
@@ -223,16 +223,15 @@ def main():
     parser.add_argument('--test_root', default='F:/precode/',
                         help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='F:/precode/train.txt', help='path to train dataset label file')
+        '--train_list', default='F:/precode/train1.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='F:/precode/test.txt', help='path to test dataset label file')
+        '--test_list', default='F:/precode/test1.txt', help='path to test dataset label file')
     parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=64, help='nh', type=int)
-    parser.add_argument('--depth', default=2, help='depth', type=int)
-    parser.add_argument('--use_lstm', default=True, help='use lstm', type=bool)
+    parser.add_argument('--nh', default=256, help='nh', type=int)
+    parser.add_argument('--depth', default=8, help='depth', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
     parser.add_argument('--batch_size', default=8, type=int,
