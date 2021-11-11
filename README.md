@@ -1,9 +1,7 @@
 ## MicroOCR
 a micro OCR network.
 
-The project has 5000 training task training sets and 500 test sets. 
-
-The training of GTX1060 3GB graphics card takes 3 minutes.
+This model can handle complex tasks without lstm, and its accuracy and speed are better than resnet and crnn models.
 
 ## Task Parameter Reference:
 Simple recognition task:nh=32 or 64,depth=2
@@ -13,6 +11,7 @@ Chinese recognition task:nh=128 or 256,depth=2
 Complex background recognition task:nh=512 or more,depth=2
 
 ## Model parameters
+5000 training pictures, 500 verification pictures.
 Nh    | Depth | Nclass  |    Params size  |Model size(KB)| Total train(epoch) | Word acc
 :----:|:-----:|:-------:|:---------------:|:------------:|:------------------:|:--------:
 16    |  2    |    62   |      9.726k     |      50      |        99          |    0.782
