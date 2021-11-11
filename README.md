@@ -3,8 +3,6 @@ a micro OCR network.
 
 The project has 5000 training task training sets and 500 test sets. 
 
-Only 35 epochs are used to verify the accuracy of the set to reach 1.0. 
-
 The training of GTX1060 3GB graphics card takes 3 minutes.
 
 ## Task Parameter Reference:
