@@ -230,8 +230,8 @@ def main():
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=256, help='nh', type=int)
-    parser.add_argument('--depth', default=8, help='depth', type=int)
+    parser.add_argument('--nh', default=128, help='nh', type=int)
+    parser.add_argument('--depth', default=2, help='depth', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
     parser.add_argument('--batch_size', default=8, type=int,

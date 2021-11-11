@@ -9,9 +9,9 @@ from infer_tool import RecInfer
 def main():
     parser = argparse.ArgumentParser(description='MicroOCR')
     parser.add_argument('--model_path',
-                        default='save_model/micro_nh16_depth2_epoch17_word_acc1.000000_char_acc1.000000.pth',
+                        default='save_model/micro_nh32_depth2_epoch100_word_acc0.842000_char_acc0.935000.pth',
                         help='model path')
-    parser.add_argument('--nh', default=16, type=int, help='nh')
+    parser.add_argument('--nh', default=32, type=int, help='nh')
     parser.add_argument('--depth', default=2, type=int, help='depth')
     cfg = parser.parse_args()
     infer = RecInfer(cfg)

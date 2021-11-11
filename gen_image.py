@@ -31,10 +31,11 @@ def gen_img(max_length):
         code_str += alphabet[random.randint(0, len(alphabet)-1)]
 
     img = np.zeros((30, 120, 3), np.uint8)
-    img[:] = [50, 100, 150]
+    img[:] = [random.randint(50, 250), random.randint(50, 250), random.randint(50, 250)]
     left = random.randint(10, 12)
     top = random.randint(1, 3)
-    img = cv2ImgAddText(img, code_str, left, top)
+    text_color = (random.randint(50, 250), random.randint(50, 250), random.randint(50, 250))
+    img = cv2ImgAddText(img, code_str, left, top, text_color)
     return code_str, img
 
 

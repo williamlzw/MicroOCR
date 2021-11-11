@@ -65,7 +65,7 @@ class MicroNet(nn.Module):
 if __name__ == '__main__':
     import time
     x = torch.randn(1, 3, 32, 128)
-    model = MicroNet(256, depth=16, nclass=62, img_height=32)
+    model = MicroNet(32, depth=2, nclass=62, img_height=32)
     t0 = time.time()
     out = model(x)
     t1 = time.time()
