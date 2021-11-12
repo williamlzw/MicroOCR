@@ -14,7 +14,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 0, 0), textSize=25):
     draw = ImageDraw.Draw(img)
 
     fontStyle = ImageFont.truetype(
-        "font/simsun.ttc", textSize, encoding="utf-8")
+        "simsunb.ttf", textSize, encoding="utf-8")
 
     for i, text_index in enumerate(text):
         draw.text((left+i*30, top), text_index, textColor, font=fontStyle)
@@ -29,48 +29,30 @@ def gen_img(max_length):
     code_str = ''
     for i in range(max_length):
         code_str += alphabet[random.randint(0, len(alphabet)-1)]
-
-    img = np.zeros((30, 120, 3), np.uint8)
-    img[:] = [random.randint(50, 250), random.randint(50, 250), random.randint(50, 250)]
     left = random.randint(10, 12)
     top = random.randint(1, 3)
-    text_color = (random.randint(50, 250), random.randint(50, 250), random.randint(50, 250))
+    img = np.zeros((30, max_length*30+left, 3), np.uint8)
+    img[:] = [random.randint(50, 250), random.randint(
+        50, 250), random.randint(50, 250)]
+    text_color = (random.randint(150, 250), random.randint(
+        150, 250), random.randint(150, 250))
     img = cv2ImgAddText(img, code_str, left, top, text_color)
     return code_str, img
 
 
-def gen_test():
-    os.makedirs('test1')
-    codes = []
-    for i in range(500):
-        code, img = gen_img(4)
-        codes.append(code)
-        cv2.imwrite('test1/'+str(i).zfill(5)+'.jpg', img)
-
-    i = 0
-    with open('test1.txt', mode='w+') as fs:
-        for code in codes:
-            fs.write('test1/'+str(i).zfill(5)+'.jpg'+'\t'+code+"\n")
-            i += 1
-        fs.close()
-
-
-def gen_train():
-    os.makedirs('train1')
-    codes = []
-    for i in range(5000):
-        code, img = gen_img(4)
-        codes.append(code)
-        cv2.imwrite('train1/'+str(i).zfill(5)+'.jpg', img)
-
-    i = 0
-    with open('train1.txt', mode='w+') as fs:
-        for code in codes:
-            fs.write('train1/'+str(i).zfill(5)+'.jpg'+'\t'+code+"\n")
-            i += 1
-        fs.close()
+def gen_dataset(img_root, count):
+    if not os.path.exists(img_root):
+        os.makedirs(img_root)
+    label_name = img_root + '.txt'
+    with open(label_name, mode='w+', encoding="utf-8") as fs:
+        for i in range(count):
+            length = random.randint(3,6)
+            code, img = gen_img(length)
+            img_name = img_root + '/' + str(i).zfill(5)+'.jpg'
+            fs.write(img_name+'\t'+code+"\n")
+            cv2.imwrite(img_name, img)
 
 
 if __name__ == '__main__':
-    gen_train()
-    gen_test()
+    gen_dataset('train', 5000)
+    gen_dataset('test', 500)

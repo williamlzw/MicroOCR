@@ -23,26 +23,26 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
         batch_idx = 0
         show_strs = []
         for batch_idx, batch_data in enumerate(data_loader):
-            targets, targets_lengths = converter.encode(batch_data['label'])
+            targets, targets_lengths = converter.encode(batch_data['labels'])
             batch_data['targets'] = targets
             batch_data['targets_lengths'] = targets_lengths
-            batch_data['image'] = batch_data['image'].to(device)
+            batch_data['images'] = batch_data['images'].to(device)
             batch_data['targets'] = batch_data['targets'].to(device)
             batch_data['targets_lengths'] = batch_data['targets_lengths'].to(
                 device)
             predicted = model.forward(
-                batch_data['image'])
+                batch_data['images'])
             loss_dict = loss_func(
                 predicted, batch_data['targets'], batch_data['targets_lengths'])
             running_loss += loss_dict['loss'].item()
-            acc_dict = metric(predicted, batch_data['label'])
+            acc_dict = metric(predicted, batch_data['labels'])
             word_correct = acc_dict['word_correct']
             char_correct = acc_dict['char_correct']
             show_strs.extend(acc_dict['show_str'])
             running_char_corrects += char_correct
             running_word_corrects += word_correct
             running_all_char_correct += torch.sum(targets_lengths).item()
-            running_all += len(batch_data['image'])
+            running_all += len(batch_data['images'])
             if batch_idx == 0:
                 since = time.time()
             elif batch_idx == len(data_loader)-1:
@@ -65,7 +65,8 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
 
 
 def train_model(cfg):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:{}".format(cfg.gpu_index)
+                          if torch.cuda.is_available() else "cpu")
     train_loader = build_rec_dataloader(
         cfg.train_root, cfg.train_list, cfg.batch_size, cfg.workers, character, is_train=True)
     test_loader = build_rec_dataloader(
@@ -85,27 +86,26 @@ def train_model(cfg):
         word_correct, char_correct = 0, 0
         for batch_idx, batch_data in enumerate(train_loader):
             batch_data['targets'], batch_data['targets_lengths'] = converter.encode(
-                batch_data['label'])
+                batch_data['labels'])
             for key, value in batch_data.items():
-                if value is not None:
-                    if isinstance(value, torch.Tensor):
-                        batch_data[key] = value.to(device)
+                if isinstance(value, torch.Tensor):
+                    batch_data[key] = value.to(device)
             predicted = model.forward(
-                batch_data['image'])
+                batch_data['images'])
             loss_dict = loss_func(
                 predicted, batch_data['targets'], batch_data['targets_lengths'])
             optimizer.zero_grad()
             loss_dict['loss'].backward()
             optimizer.step()
             running_loss += loss_dict['loss'].item()
-            acc_dict = metric(predicted, batch_data['label'])
+            acc_dict = metric(predicted, batch_data['labels'])
             word_correct = acc_dict['word_correct']
             char_correct = acc_dict['char_correct']
             running_char_corrects += char_correct
             running_word_corrects += word_correct
             running_all_char_correct += torch.sum(
                 batch_data['targets_lengths']).item()
-            running_all += len(batch_data['image'])
+            running_all += len(batch_data['images'])
 
             if batch_idx == 0:
                 since = time.time()
@@ -126,12 +126,12 @@ def train_model(cfg):
                     model, device, test_loader, converter, metric, loss_func, cfg.show_str_size)
                 if val_word_accu > best_word_accu:
                     best_word_accu = val_word_accu
-                    save_rec_model(cfg.model_type, model, 'best',
+                    save_rec_model(cfg.model_type, model, cfg.nh, cfg.depth, 'best',
                                    best_word_accu, val_char_accu)
         if (epoch+1) % cfg.save_epoch == 0:
             val_word_accu, val_char_accu = test_model(
                 model, device, test_loader, converter, metric, loss_func, cfg.show_str_size)
-            save_rec_model(cfg.model_type, model, epoch+1,
+            save_rec_model(cfg.model_type, model, cfg.nh, cfg.depth, epoch+1,
                            val_word_accu, val_char_accu)
         scheduler.step()
 
@@ -185,7 +185,7 @@ def build_scheduler(optimizer, step_size=1000, gamma=0.8):
     return scheduler
 
 
-def save_rec_model(model_type, model,  epoch, word_acc, char_acc):
+def save_rec_model(model_type, model, nh, depth,  epoch, word_acc, char_acc):
     if epoch == 'best':
         save_path = './save_model/{}_best_rec.pth'.format(model_type)
         if os.path.exists(save_path):
@@ -198,8 +198,8 @@ def save_rec_model(model_type, model,  epoch, word_acc, char_acc):
             'char_acc': char_acc},
             save_path)
     else:
-        save_path = './save_model/{}_epoch{}_word_acc{:05f}_char_acc{:05f}.pth'.format(
-            model_type, epoch, word_acc, char_acc)
+        save_path = './save_model/{}_nh{}_depth{}_epoch{}_word_acc{:05f}_char_acc{:05f}.pth'.format(
+            model_type, nh, depth, epoch, word_acc, char_acc)
         torch.save({
             'model': model.state_dict(),
             'word_acc': word_acc,
@@ -218,20 +218,22 @@ def load_rec_model(model_path, model):
 
 def main():
     parser = argparse.ArgumentParser(description='MicroOCR')
-    parser.add_argument('--train_root', default='F:/precode/',
+    parser.add_argument('--train_root', default='./',
                         help='path to train dataset dir')
-    parser.add_argument('--test_root', default='F:/precode/',
+    parser.add_argument('--test_root', default='./',
                         help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='F:/precode/train1.txt', help='path to train dataset label file')
+        '--train_list', default='train.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='F:/precode/test1.txt', help='path to test dataset label file')
+        '--test_list', default='test.txt', help='path to test dataset label file')
     parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
-    parser.add_argument('--nh', default=128, help='nh', type=int)
-    parser.add_argument('--depth', default=2, help='depth', type=int)
+    parser.add_argument(
+        '--nh', default=128, help='feature width, the more complex the picture background, the larger the value', type=int)
+    parser.add_argument(
+        '--depth', default=2, help='depth, the greater the number of samples, the greater this value', type=int)
     parser.add_argument('--lr', default=0.0001,
                         help='initial learning rate', type=float)
     parser.add_argument('--batch_size', default=8, type=int,
@@ -245,9 +247,11 @@ def main():
     parser.add_argument('--val_interval', default=1000,
                         help='val interval', type=int)
     parser.add_argument('--save_epoch', default=1,
-                        help='save epoch', type=int)
+                        help='how many epochs to save the weight', type=int)
     parser.add_argument('--show_str_size', default=10,
                         help='show str size', type=int)
+    parser.add_argument('--gpu_index', default=0, type=int,
+                        help='gpu index')
     cfg = parser.parse_args()
     if not os.path.exists('save_model'):
         os.makedirs('save_model')

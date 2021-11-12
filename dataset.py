@@ -30,7 +30,7 @@ class RecTextLineDataset(Dataset):
             file_list = [file_list]
         data_lines = []
         for file in file_list:
-            with open(file, "r") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
                 data_lines.extend(lines)
         return data_lines
@@ -45,4 +45,4 @@ class RecTextLineDataset(Dataset):
         img_path, label = self.data_lines[index]
         image = cv2.imread(img_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return dict(img_path=img_path, image=image, label=label)
+        return dict(img_path=img_path, images=image, labels=label)

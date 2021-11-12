@@ -54,17 +54,17 @@ class RecCollateFn:
         # 统一缩放到指定高度
         all_same_height_images = [
             resize_with_specific_height(
-                self.input_h, batch_index['image']) for batch_index in batch]
+                self.input_h, batch_index['images']) for batch_index in batch]
         # 取出最大宽度
         max_img_w = max({m_img.shape[1] for m_img in all_same_height_images})
         # 确保最大宽度是8的倍数
         max_img_w = int(np.ceil(max_img_w / 8) * 8)
         labels = []
         for i in range(len(batch)):
-            labels.append(batch[i]['label'])
+            labels.append(batch[i]['labels'])
             img = width_pad_img(
                 all_same_height_images[i], max_img_w)
             img = self.transforms(img)
             resize_images.append(img)
-        ret_images = torch.stack(resize_images)
-        return {'image': ret_images, 'label': labels}
+        images = torch.stack(resize_images)
+        return {'images': images, 'labels': labels}
