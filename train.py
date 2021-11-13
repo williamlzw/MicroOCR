@@ -1,7 +1,7 @@
 import argparse
-
 import os
 import time
+
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -12,7 +12,14 @@ from loss import CTCLoss
 from dataset import RecTextLineDataset
 from collatefn import RecCollateFn
 from label_converter import CTCLabelConverter
+from logger import create_logger
 from keys import character
+
+if not os.path.exists('save_model'):
+    os.makedirs('save_model')
+if not os.path.exists('log'):
+    os.makedirs('log')
+logger = create_logger('log')
 
 
 def test_model(model, device, data_loader, converter, metric, loss_func, show_str_size):
@@ -46,7 +53,7 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
             if batch_idx == 0:
                 since = time.time()
             elif batch_idx == len(data_loader)-1:
-                print('Eval:[{:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s'.format(
+                logger.info('Eval:[{:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s'.format(
                     running_all,
                     len(data_loader.dataset),
                     100. * batch_idx / (len(data_loader)-1),
@@ -55,7 +62,7 @@ def test_model(model, device, data_loader, converter, metric, loss_func, show_st
                     running_char_corrects / running_all_char_correct,
                     time.time()-since))
     for s in show_strs[:show_str_size]:
-        print(s)
+        logger.info(s)
     model.train()
     val_word_accu = running_word_corrects / \
         running_all if running_all != 0 else 0.
@@ -74,7 +81,8 @@ def train_model(cfg):
     converter = CTCLabelConverter(character)
     loss_func = build_rec_loss().to(device)
     metric = build_rec_metric(converter)
-    model = build_rec_model(cfg, converter.num_of_classes).to(device)
+    model = build_rec_model(
+        cfg.nh, cfg.depth, converter.num_of_classes).to(device)
     if cfg.model_path != '':
         load_rec_model(cfg.model_path, model)
     optimizer = build_optimizer(model, cfg.lr)
@@ -110,7 +118,7 @@ def train_model(cfg):
             if batch_idx == 0:
                 since = time.time()
             elif batch_idx % cfg.display_interval == 0 or (batch_idx == len(train_loader)-1):
-                print('Train:[epoch {}/{} {:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s Estimated time:{:5.0f}s'.format(
+                logger.info('Train:[epoch {}/{} {:5.0f}/{:5.0f} ({:.0f}%)] Loss:{:.4f} Word Acc:{:.4f} Char Acc:{:.4f} Cost time:{:5.0f}s Estimated time:{:5.0f}s'.format(
                     epoch+1,
                     cfg.epochs,
                     running_all,
@@ -136,8 +144,8 @@ def train_model(cfg):
         scheduler.step()
 
 
-def build_rec_model(cfg, nclass):
-    model = MicroNet(nh=cfg.nh, depth=cfg.depth, nclass=nclass)
+def build_rec_model(nh, depth, nclass):
+    model = MicroNet(nh=nh, depth=depth, nclass=nclass)
     return model
 
 
@@ -185,35 +193,39 @@ def build_scheduler(optimizer, step_size=1000, gamma=0.8):
     return scheduler
 
 
-def save_rec_model(model_type, model, nh, depth,  epoch, word_acc, char_acc):
+def save_rec_model(model_type, model, nh, depth, epoch, word_acc, char_acc):
     if epoch == 'best':
-        save_path = './save_model/{}_best_rec.pth'.format(model_type)
+        save_path = './save_model/{}_nh{}_depth{}_best_rec.pth'.format(model_type, nh, depth)
         if os.path.exists(save_path):
             data = torch.load(save_path)
-            if 'model' in data and data['word_acc'] > word_acc:
+            if 'model' in data and data['wordAcc'] > word_acc:
                 return
         torch.save({
             'model': model.state_dict(),
-            'word_acc': word_acc,
-            'char_acc': char_acc},
+            'nh': nh,
+            'depth': depth,
+            'wordAcc': word_acc,
+            'charAcc': char_acc},
             save_path)
     else:
-        save_path = './save_model/{}_nh{}_depth{}_epoch{}_word_acc{:05f}_char_acc{:05f}.pth'.format(
+        save_path = './save_model/{}_nh{}_depth{}_epoch{}_wordAcc{:05f}_charAcc{:05f}.pth'.format(
             model_type, nh, depth, epoch, word_acc, char_acc)
         torch.save({
             'model': model.state_dict(),
-            'word_acc': word_acc,
-            'char_acc': char_acc},
+            'nh': nh,
+            'depth': depth,
+            'wordAcc': word_acc,
+            'charAcc': char_acc},
             save_path)
-    print('save model to:'+save_path)
+    logger.info('save model to:'+save_path)
 
 
 def load_rec_model(model_path, model):
     data = torch.load(model_path)
     if 'model' in data:
         model.load_state_dict(data['model'])
-        print('Model loaded word_acc {} ,char_acc {}'.format(
-            data['word_acc'], data['char_acc']))
+        logger.info('Model loaded nh {}, depth {}, wordAcc {} , charAcc {}'.format(
+            data['nh'], data['depth'], data['wordAcc'], data['charAcc']))
 
 
 def main():
@@ -223,15 +235,15 @@ def main():
     parser.add_argument('--test_root', default='./',
                         help='path to test dataset dir')
     parser.add_argument(
-        '--train_list', default='train.txt', help='path to train dataset label file')
+        '--train_list', default='./train.txt', help='path to train dataset label file')
     parser.add_argument(
-        '--test_list', default='test.txt', help='path to test dataset label file')
+        '--test_list', default='./test.txt', help='path to test dataset label file')
     parser.add_argument('--model_path', default='',
                         help='model path')
     parser.add_argument('--model_type', default='micro',
                         help='model type', type=str)
     parser.add_argument(
-        '--nh', default=128, help='feature width, the more complex the picture background, the larger the value', type=int)
+        '--nh', default=64, help='feature width, the more complex the picture background, the greater this value', type=int)
     parser.add_argument(
         '--depth', default=2, help='depth, the greater the number of samples, the greater this value', type=int)
     parser.add_argument('--lr', default=0.0001,
@@ -240,7 +252,7 @@ def main():
                         help='batch size')
     parser.add_argument('--workers', default=0,
                         help='number of data loading workers', type=int)
-    parser.add_argument('--epochs', default=300,
+    parser.add_argument('--epochs', default=100,
                         help='number of total epochs', type=int)
     parser.add_argument('--display_interval', default=200,
                         help='display interval', type=int)
@@ -253,8 +265,6 @@ def main():
     parser.add_argument('--gpu_index', default=0, type=int,
                         help='gpu index')
     cfg = parser.parse_args()
-    if not os.path.exists('save_model'):
-        os.makedirs('save_model')
     train_model(cfg)
 
 

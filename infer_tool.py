@@ -14,7 +14,7 @@ from collatefn import resize_with_specific_height
 class RecInfer:
     def __init__(self, cfg):
         self.device = torch.device('cpu')
-        self.model = build_rec_model(cfg, len(character)+1)
+        self.model = build_rec_model(cfg.nh, cfg.depth, len(character)+1)
         load_rec_model(cfg.model_path, self.model)
         self.model.to(self.device)
         self.model.eval()

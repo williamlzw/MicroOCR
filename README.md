@@ -27,15 +27,17 @@ Nh    | Depth | Nclass  |    Params size  |Model size(KB)| Total train(epoch) | 
 
 ```shell
 MicroOCR
-├── README.md                                   # Descriptions about MicroNet
-├── collatefn.py                                # collatefn
+├── README.md                                   # descriptions about MicroNet
+├── simsunb.ttf                                 # font file
+├── collatefn.py                                # batch data processing
 ├── label_converter.py                          # label converter
-├── dataset.py                                  # Data preprocessing for training and evaluation
-├── demo.py                                     # demo
+├── dataset.py                                  # data preprocessing for training and evaluation
+├── demo.py                                     # inference
 ├── gen_image.py                                # generate image for train and eval
 ├── infer_tool.py                               # inference tool
+├── logger.py                                   # logger
 ├── keys.py                                     # character
-├── loss.py                                     # Ctcloss definition
+├── loss.py                                     # ctcloss definition
 ├── metric.py                                   # accuracy metric for MicroNet
 ├── model.py                                    # MicroNet
 ├── train.py                                    # train the model

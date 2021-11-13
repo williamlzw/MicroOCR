@@ -54,5 +54,5 @@ def gen_dataset(img_root, count):
 
 
 if __name__ == '__main__':
-    gen_dataset('train', 5000)
+    gen_dataset('train', 10000)
     gen_dataset('test', 500)
