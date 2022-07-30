@@ -28,13 +28,22 @@ def width_pad_img(img: np.ndarray,
     :param _pad_value:  pad的值
     :return:    pad完成后的图像
     """
-    height, width, channels = img.shape
-    if target_width > width:
-        to_return_img = np.ones(
-            [height, target_width, channels], dtype=img.dtype) * pad_value
-        to_return_img[:height, :width, :] = img
-    else:
-        to_return_img = img
+    if len(img.shape) == 3:
+        height, width, channels = img.shape
+        if target_width > width:
+            to_return_img = np.ones(
+                [height, target_width, channels], dtype=img.dtype) * pad_value
+            to_return_img[:height, :width, :] = img
+        else:
+            to_return_img = img
+    elif len(img.shape) == 2:
+        height, width = img.shape
+        if target_width > width:
+            to_return_img = np.ones(
+                [height, target_width], dtype=img.dtype) * pad_value
+            to_return_img[:height, :width] = img
+        else:
+            to_return_img = img
     return to_return_img
 
 
@@ -43,7 +52,7 @@ class RecCollateFn:
     将图片缩放到固定高度,宽度取当前批次最长的RecCollateFn
     """
 
-    def __init__(self, input_h: int=32):
+    def __init__(self, input_h: int = 32):
         self.input_h = input_h
         self.transforms = transforms.ToTensor()
 
@@ -59,6 +68,7 @@ class RecCollateFn:
         max_img_w = max({m_img.shape[1] for m_img in all_same_height_images})
         # 确保最大宽度是8的倍数
         max_img_w = int(np.ceil(max_img_w / 8) * 8)
+        #print(max_img_w)
         labels = []
         for i in range(len(batch)):
             labels.append(batch[i]['labels'])

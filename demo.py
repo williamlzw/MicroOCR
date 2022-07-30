@@ -8,15 +8,21 @@ from infer_tool import RecInfer
 
 def main():
     parser = argparse.ArgumentParser(description='MicroOCR')
+    parser.add_argument('--vocabulary_path', default='english.txt',
+                        help='vocabulary path')
     parser.add_argument('--model_path',
-                        default='save_model/micro_nh32_depth2_epoch100_word_acc0.842000_char_acc0.935000.pth',
+                        default='./save_model/micromlp_nh64_depth2_best_rec.pth',
                         help='model path')
-    parser.add_argument('--nh', default=32, type=int, help='nh')
+    parser.add_argument('--nh', default=64, type=int, help='nh')
     parser.add_argument('--depth', default=2, type=int, help='depth')
+    parser.add_argument(
+        '--in_channels', default=3, help='in channels', type=int)
     cfg = parser.parse_args()
     infer = RecInfer(cfg)
-    img = cv2.imread('00000.jpg')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.imread('D:/dataset/gen/test/00000.jpg',
+                     cv2.IMREAD_COLOR if cfg.in_channels == 3 else cv2.IMREAD_GRAYSCALE)
+    if cfg.in_channels == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     t0 = time.time()
     out = infer.predict(img)
     t1 = time.time()

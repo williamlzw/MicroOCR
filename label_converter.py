@@ -7,40 +7,58 @@ import numpy as np
 
 class CTCLabelConverter(object):
     def __init__(self, character: str):
-        dict_character = list(character)
-        self.num_of_classes = len(character)+1
-        self.dict = {}
-        for i, char in enumerate(dict_character):
-            self.dict[char] = i + 1
-        self.character = ['_'] + dict_character
+        list_character = list(character)
+        self.num_of_classes = len(character)+2
+        self.idx2char = []
+        self.idx2char.append('_')
+        for line in list_character:
+            line = line.strip()
+            if line != '':
+                self.idx2char.append(line)
+        self.idx2char.append(' ')
+        self.char2idx = {}
+        for idx, char in enumerate(self.idx2char):
+            self.char2idx[char] = idx
 
-    def encode(self, text: List[str]) -> List[Tensor]:
-        length = [len(s) for s in text]
-        t = [self.dict[char] for s in text for char in s]
-        return torch.tensor(t, dtype=torch.long), \
-            torch.tensor(length, dtype=torch.long)
+    def str2idx(self, strings):
+        """Convert strings to indexes.
+        Args:
+            strings (list[str]): ['hello', 'world'].
+        Returns:
+            indexes (list[list[int]]): [1,2,3,3,4,5,4,6,3,7].
+        """
+        indexes = []
+        for string in strings:
+            for char in string:
+                char_idx = self.char2idx.get(char)
+                if char_idx is None:
+                    raise Exception(f'Chararcter: {char} not in dict')
+                indexes.append(char_idx)
+        return indexes
+
+    def encode(self, strings: List[str]) -> Tuple[Tensor, Tensor]:
+        targets_lengths = [len(s) for s in strings]
+        targets = self.str2idx(strings)
+        return torch.LongTensor(targets), torch.LongTensor(targets_lengths)
 
     def decode(self,
-               preds: np.ndarray,
+               preds: Tensor,
                raw: bool = False) -> List[Tuple[str, np.ndarray]]:
-        preds_idx = preds.argmax(axis=2)
-        preds_prob = preds.max(axis=2)
+        preds = preds.softmax(dim=2)
+        preds_score, preds_idx = preds.max(dim=2)
+        preds_idx = preds_idx.detach().cpu().numpy().tolist()
+        preds_score = preds_score.detach().cpu().numpy().tolist()
         result_list = []
-        for word, prob in zip(preds_idx, preds_prob):
+        for word, score in zip(preds_idx, preds_score):
             if raw:
                 result_list.append(
-                    (''.join([self.character[int(i)] for i in word]), prob))
+                    (''.join([self.idx2char[char_idx] for char_idx in word]), score))
             else:
-                result = []
-                conf = []
-                for i, index in enumerate(word):
-                    if word[i] != 0 and (not (i > 0 and word[i - 1] == word[i])):
-                        result.append(self.character[int(index)])
-                        conf.append(prob[i])
-                result_list.append((''.join(result), conf))
+                char_list = []
+                score_list = []
+                for i, char_idx in enumerate(word):
+                    if char_idx != 0 and (not (i > 0 and word[i - 1] == char_idx)):
+                        char_list.append(self.idx2char[char_idx])
+                        score_list.append(score[i])
+                result_list.append((''.join(char_list), score_list))
         return result_list
-
-
-if __name__ == "__main__":
-
-    pass
